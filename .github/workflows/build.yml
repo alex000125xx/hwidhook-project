@@ -1,31 +1,57 @@
-permissions:
-  actions: read
-  contents: read
-
 name: Build hwidhook.dll
+
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Build Detours SDK
-        working-directory: detours
-        run: nmake /f build\\msvc\\buildtools.mak
+    # ———————————————
+    # 1) إعداد بيئة Visual Studio
+    # ———————————————
+    - name: Setup VS tools
+      shell: cmd
+      run: |
+        REM ابحث عن مجلّد تثبيت Visual Studio الذي يملك أدوات VC
+        FOR /F "usebackq tokens=*" %%I IN (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath"`) DO (
+          SET "VSINSTALL=%%I"
+        )
+        REM شغّل سكربت إعداد البيئة (x64)
+        CALL "%VSINSTALL%\VC\Auxiliary\Build\vcvarsall.bat" x64
 
-      - name: Compile hwidhook.dll
-        run: |
-          cl /EHsc /LD hwidhook.cpp detours\\src\\detours.lib \
-             /I detours\\include /link /OUT:hwidhook.dll
+    # ———————————————
+    # 2) بناء مكتبة Detours
+    # ———————————————
+    - name: Build Detours SDK
+      shell: cmd
+      working-directory: detours
+      run: nmake /f build\msvc\buildtools.mak
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hwidhook
-          path: hwidhook.dll
+    # ———————————————
+    # 3) تجميع DLL
+    # ———————————————
+    - name: Compile hwidhook.dll
+      shell: cmd
+      run: |
+        cl /EHsc /LD hwidhook.cpp detours\src\detours.lib ^
+           /I detours\include /link /OUT:hwidhook.dll
+
+    # ———————————————
+    # 4) رفع الأرشيف
+    # ———————————————
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hwidhook
+        path: hwidhook.dll
