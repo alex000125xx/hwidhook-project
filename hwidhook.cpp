@@ -7,7 +7,7 @@
 static BOOL (WINAPI * TrueGetComputerNameA)(LPSTR, LPDWORD) = GetComputerNameA;
 
 // القيمة التي نريد أن يراها البرنامج كـHWID
-static const char fakeHwid[] = "45d6eb786a3cda50de154b374f578be6c9e324263bb4c090f1b7075923244152";
+static const char fakeHwid[] = "35d6eb786a3cda50de154b374f578be6c9e324263bb4c090f1b7075923244152";
 
 // الدالة التي سنركبها بدلاً من GetComputerNameA
 BOOL WINAPI HookedGetComputerNameA(LPSTR lpBuffer, LPDWORD nSize) {
