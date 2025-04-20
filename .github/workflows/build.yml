@@ -1,4 +1,3 @@
-# .github/workflows/build.yml
 name: Build hwidhook.dll
 
 on:
@@ -15,32 +14,19 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup VS tools
-      shell: cmd
-      run: |
-        REM — إيجاد مسار تثبيت VS الذي يحتوي على أدوات VC
-        for /f "tokens=*" %%I in (
-          '"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"' 
-          -latest -products * 
-          -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 
-          -property installationPath
-        ) do set "VSINSTALL=%%~I"
-        REM — تحميل متغيرات البيئة للـ x64
-        call "%VSINSTALL%\VC\Auxiliary\Build\vcvarsall.bat" x64
+    - name: Setup MSVC Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
 
     - name: Build Detours SDK
-      shell: cmd
-      working-directory: detours
-      run: nmake /f build\msvc\buildtools.mak
+      run: nmake /f detours\build\msvc\buildtools.mak
 
     - name: Compile hwidhook.dll
-      shell: cmd
-      run: |
-        cl /EHsc /LD hwidhook.cpp detours\src\detours.lib ^
-           /I detours\include /link /OUT:hwidhook.dll
+      run: cl /EHsc /LD hwidhook.cpp detours\src\detours.lib /I detours\include /link /OUT:hwidhook.dll
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
