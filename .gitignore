@@ -1,0 +1,9 @@
+# Visual Studio artifacts
+*.suo
+*.user
+*.vcxproj.*
+bin/
+obj/
+
+# Built DLL
+hwidhook.dll
