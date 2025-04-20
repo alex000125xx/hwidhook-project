@@ -1,3 +1,7 @@
+permissions:
+  actions: read
+  contents: read
+
 name: Build hwidhook.dll
 
 on:
@@ -5,31 +9,33 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  actions: read
-  contents: read
-
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup MSVC Developer Command Prompt
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x64
+      - name: Setup MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
-    - name: Build Detours SDK
-      run: nmake /f detours\build\msvc\buildtools.mak
+      - name: Build Detours SDK
+        shell: cmd
+        working-directory: detours\src
+        run: |
+          set DETOURS_TARGET_PROCESSOR=x64
+          nmake
 
-    - name: Compile hwidhook.dll
-      run: cl /EHsc /LD hwidhook.cpp detours\src\detours.lib /I detours\include /link /OUT:hwidhook.dll
+      - name: Compile hwidhook.dll
+        shell: cmd
+        run: |
+          cl /EHsc /LD hwidhook.cpp detours\lib.X64\detours.lib /I detours\include /link /OUT:hwidhook.dll
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: hwidhook
-        path: hwidhook.dll
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hwidhook
+          path: hwidhook.dll
