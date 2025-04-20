@@ -1,3 +1,4 @@
+# .github/workflows/build.yml
 name: Build hwidhook.dll
 
 on:
@@ -10,23 +11,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        submodules: false    # لأننا رفعنا Detours يدويّاً
+    - uses: actions/checkout@v3
 
-    - name: Build Detours SDK
+    - name: Build Detours
       working-directory: detours
-      run: |
-        nmake /f build\\msvc\\buildtools.mak
+      run: nmake /f Makefile
 
     - name: Compile hwidhook.dll
       run: |
-        cl /EHsc /LD hwidhook.cpp detours\\src\\detours.lib \
-           /I detours\\include /link /OUT:hwidhook.dll
+        cl /EHsc /LD ../hwidhook.cpp detours\lib.X64\detours.lib /I detours\include /link /OUT:hwidhook.dll
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v3
       with:
         name: hwidhook
         path: hwidhook.dll
