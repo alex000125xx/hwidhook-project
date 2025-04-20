@@ -2,7 +2,7 @@ permissions:
   actions: read
   contents: read
 
-name: Build hwidhook.dll
+name: Build hwidhook & Injector
 
 on:
   push:
@@ -34,8 +34,15 @@ jobs:
         run: |
           cl /EHsc /LD hwidhook.cpp detours\lib.X64\detours.lib /I detours\include /link /OUT:hwidhook.dll
 
-      - name: Upload artifact
+      - name: Compile Injector.exe
+        shell: cmd
+        run: |
+          cl /EHsc injector.cpp /link /OUT:Injector.exe
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: hwidhook
-          path: hwidhook.dll
+          name: build-output
+          path: |
+            hwidhook.dll
+            Injector.exe
